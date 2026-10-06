@@ -1,0 +1,13 @@
+.git
+.vs
+.agents
+.codex
+.aws
+out
+cert
+certs
+**/*.pfx
+**/*.pvk
+**/*.key
+**/CMakeFiles
+**/CMakeCache.txt

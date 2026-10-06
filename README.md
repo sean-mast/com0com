@@ -31,6 +31,70 @@ Follow these step for building
 - `cmake`
 - NSIS
 
+## Building with Docker
+
+Use Docker Desktop in **Windows containers** mode on a compatible Windows host.
+The image uses Windows Server Core 2022 with .NET Framework 4.8 and installs:
+
+- Visual Studio 2022 Build Tools (MSVC v143, MSBuild, C++/CLI, and CMake)
+- Windows SDK 26100 and WDK 26100.6584
+- .NET Framework 4.8 SDK and targeting pack
+- NSIS 3.11
+
+The SDK and WDK use matching build numbers, following Microsoft's
+[WDK guidance](https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk).
+The Windows base image and installer setup follow Microsoft's
+[Build Tools container guidance](https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container).
+
+From the repository root in PowerShell:
+
+```powershell
+# This must print "windows". Switch Docker Desktop to Windows containers if needed.
+docker info --format '{{.OSType}}'
+
+# Downloads dependencies once; later builds reuse Docker's cached layers.
+docker build --isolation=hyperv --memory=4g -t com0com-build .
+
+# Build the working tree and keep build outputs on the host.
+docker run --rm --isolation=hyperv --memory=4g --mount "type=bind,source=$($PWD.Path),target=C:\src" com0com-build
+```
+
+The default command configures CMake for Visual Studio 2022 and x64, then
+builds the driver, setup DLL, console setup tool, and GUI. Intermediate files
+are in `out/build/docker-x64`; binaries, INF files, and documentation are staged
+in `out/docker/Release/amd64`. These are **unsigned** build outputs. Follow the
+signing and catalog instructions below before installing the driver; the
+container build does not generate a signed installer or install the driver.
+
+To build Debug instead:
+
+```powershell
+docker run --rm --isolation=hyperv --memory=4g --mount "type=bind,source=$($PWD.Path),target=C:\src" com0com-build powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\docker\Build.ps1 -Configuration Debug
+```
+
+For an interactive developer shell with the compiler environment initialized:
+
+```powershell
+docker run --rm -it --isolation=hyperv --mount "type=bind,source=$($PWD.Path),target=C:\src" com0com-build powershell.exe -NoLogo
+```
+
+The image also includes a snapshot of the sources, so it can build without a
+source mount. To export that build's outputs:
+
+```powershell
+docker run --name com0com-output --isolation=hyperv --memory=4g com0com-build
+docker cp com0com-output:C:\src\out\docker .\out
+docker rm com0com-output
+```
+
+For a reusable dependencies-only image, add `--target buildtools` to
+`docker build` and mount the source tree when running it. The first image build
+requires internet access and several GB of disk space. Hyper-V isolation
+requires Hyper-V support; compatible Windows Server hosts can use process
+isolation instead. The VS 2022 release bootstrapper and base image tag receive
+updates; `WDK_URL`, `NSIS_VERSION`, and `BASE_IMAGE` are Docker build arguments
+for overriding the defaults.
+
 ## Self-signing Driver
 
 Pre-requisites: [link](https://learn.microsoft.com/en-us/windows-hardware/drivers/install/kernel-mode-code-signing-policy--windows-vista-and-later-)

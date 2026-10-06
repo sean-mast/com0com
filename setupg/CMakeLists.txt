@@ -43,11 +43,11 @@ target_include_directories(setupg PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(setupg PROPERTIES
     COMMON_LANGUAGE_RUNTIME ""
     VS_CHARSET "Unicode"
-    VS_GLOBAL_CLRSupport "Pure"
     VS_GLOBAL_ROOTNAMESPACE SetupApp
     VS_GLOBAL_KEYWORD "ManagedCProj"
     #VS_GLOBAL_CLRSupport "true"
-    VS_DOTNET_REFERENCES "System;System.Windows;System.Windows.Forms;System.Drawing;System.Data;"
+    VS_DOTNET_REFERENCES "System;System.Windows.Forms;System.Drawing;System.Data"
+    VS_DOTNET_TARGET_FRAMEWORK_VERSION "v4.8"
 
     #DOTNET_TARGET_FRAMEWORK "v4.7.2"
     #VS_DOTNET_REFERENCES "System" "System.Data" "System.Drawing" "System.Windows.Forms" "System.Xml"
